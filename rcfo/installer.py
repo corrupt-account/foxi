@@ -232,9 +232,9 @@ def step_framework(files: dict[str, Path]) -> None:
     ui.wait_enter("Press Enter after the phone has restarted")
     A.wait_boot()
     time.sleep(10)
-    A.shell(f"rm -f {target}")
-    if "vectord" not in A.shell("ps -A"):
+    if "vectord" not in A.shell("ps -A"):  # keep the zip on the phone so the user can retry right away
         raise A.ToolError("Vector isn't running yet. Start the program again and repeat the steps in Magisk.")
+    A.shell(f"rm -f {target}")
     ui.ok("Vector running")
 
 

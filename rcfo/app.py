@@ -9,10 +9,12 @@ from pathlib import Path
 from . import android as A
 from . import config as C
 from . import installer
+from . import panel
 from . import ui
 
 
-def start_tiktok() -> None:
+def start_tiktok() -> list[str]:
+    """Boot the phone and open TikTok; returns the first status lines for the menu screen."""
     ui.step(1, 2, "Starting the phone")
     A.start_emulator()
     ui.ok("phone running (see the phone window)")
@@ -22,27 +24,23 @@ def start_tiktok() -> None:
         raise A.ToolError(f"TikTok {C.TIKTOK_VERSION} is not installed (found {ver or 'nothing'}). "
                           "Choose option 3 and start again to rebuild.")
     if A.module_active():
-        ui.ok("TikTok open, banner module active")
-    else:
-        ui.warn("TikTok is open, but the banner module did not report in. The 'Add background'")
-        ui.warn("button may be missing. Restarting the program usually fixes it.")
-    print()
-    ui.info(ui.WHITE("Sign in to TikTok in the phone window, then go to:"))
-    ui.info("Profile → Edit profile → " + ui.CYAN("Add background") + " → Upload photo → album " + ui.CYAN("Banners"))
+        return [panel.ok("TikTok is open in the phone window, banner module active.")]
+    return [panel.warn("TikTok is open, but the banner module didn't report in: 'Add background' may be"),
+            panel.warn("missing. Restarting the program (option 2, then start again) usually fixes it.")]
 
 
-def add_images() -> None:
-    ui.info(ui.DIM("Drag image files into this window (or paste a path) and press Enter. Empty = back."))
-    raw = ui.ask("Image: ")
+def add_images(raw: str) -> list[str]:
+    """Copy dropped/pasted image files into the phone's Banners album. Returns status lines."""
     paths = ui.parse_paths(raw)
     if not paths:
-        return
+        return []
     existing = set(A.shell(f"ls {C.DEVICE_ALBUM} 2>/dev/null").split("\n"))
+    out: list[str] = []
     added = 0
     for p in paths:
         path, kind = ui.check_image(p)
         if path is None:
-            ui.warn(kind)
+            out.append(panel.warn(kind))
             continue
         name = ui.device_name(path, existing)
         A.push_image(path, name)
@@ -52,11 +50,15 @@ def add_images() -> None:
                 break
             time.sleep(1)
         else:
-            ui.warn(f"{name} copied, but the photo picker hasn't listed it yet; it should appear shortly.")
-        ui.ok(f"Added {ui.WHITE(name)} ({kind}) to the {ui.CYAN('Banners')} album")
+            out.append(panel.warn(f"{name} copied; the photo picker should list it shortly."))
+        out.append(panel.ok(f"Added {name} ({kind}) to the Banners album"))
         added += 1
+    if len(out) > panel.STATUS_ROWS - 1:
+        hidden = len(out) - (panel.STATUS_ROWS - 1)
+        out = [panel.note(f"({hidden} earlier message(s) not shown)")] + out[-(panel.STATUS_ROWS - 1):]
     if added:
-        ui.info("In TikTok: Add background → Upload photo → Banners. TikTok stays open.")
+        out.append(panel.note("In TikTok: Add background → Upload photo → Banners. Add more with 1."))
+    return out[-panel.STATUS_ROWS:]
 
 
 def close() -> None:
@@ -65,11 +67,14 @@ def close() -> None:
     ui.ok("Closed. Start the program again any time.")
 
 
-def erase() -> bool:
-    ui.warn(f"This deletes {C.APP_DIR} : the phone, your TikTok sign-in on it, imported images,")
-    ui.warn("downloads and settings. Nothing outside that folder is touched.")
-    if ui.ask("Type ERASE to confirm: ").strip().upper() != "ERASE":
-        ui.info("Cancelled.")
+def erase(interactive_panel: bool = True) -> bool:
+    lines = [panel.warn(f"This deletes {C.APP_DIR}: the phone, its TikTok sign-in, imported images,"),
+             panel.warn("downloads and settings. Nothing outside that folder is touched.")]
+    if interactive_panel:
+        panel.draw(lines)
+    else:
+        print("\n".join(lines))
+    if ui.ask("Type ERASE to confirm (anything else cancels): ").strip().upper() != "ERASE":
         return False
     ui.info("Signing out of TikTok on this phone and shutting down...")
     if A.is_running():
@@ -105,23 +110,27 @@ def main() -> int:
             if not C.APP_DIR.exists():
                 ui.ok("Nothing to erase.")
                 return 0
-            return 0 if erase() else 1
+            return 0 if erase(interactive_panel=False) else 1
         if not installer.is_ready():
             installer.run_setup()
             print()
-        start_tiktok()
+        status = start_tiktok()
         while True:
-            choice = ui.menu()
+            panel.draw(status)
+            choice = ui.ask("Choose 1, 2 or 3: ").strip()
             if choice == "1":
-                add_images()
+                panel.draw([panel.note("Drag image files into this window (or paste a path), then press Enter."),
+                            panel.note("Press Enter on an empty line to go back.")])
+                status = add_images(ui.ask("Image: "))
             elif choice == "2":
                 close()
                 return 0
             elif choice == "3":
                 if erase():
                     return 0
-            elif choice:
-                ui.warn("Please type 1, 2 or 3.")
+                status = [panel.note("Erase cancelled.")]
+            else:
+                status = [panel.warn("Please type 1, 2 or 3.")] if choice else []
     except A.ToolError as e:
         print()
         ui.warn(str(e))

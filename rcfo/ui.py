@@ -50,17 +50,17 @@ _FONT = {  # 3-row block letters
 }
 
 
+def title_rows() -> list[str]:
+    """'Tik: RCFO' in 3-row block letters, TikTok-style chromatic split (cyan / white / pink)."""
+    rows = [" ".join(_FONT[ch][r] for ch in "Tik: RCFO") for r in range(3)]  # 31 columns wide
+    return [_c("1;38;2;37;244;238", rows[0]), WHITE(rows[1]), _c("1;38;2;254;44;85", rows[2])]
+
+
 def title() -> None:
-    rows = [" ".join(_FONT[ch][r] for ch in "Tik: RCFO") for r in range(3)]
     print()
-    if COLOUR:  # TikTok-style chromatic split: cyan top, white body, pink base
-        print("   " + _c("1;38;2;37;244;238", rows[0]))
-        print("   " + WHITE(rows[1]))
-        print("   " + _c("1;38;2;254;44;85", rows[2]))
-        print("   " + CYAN("▔▔▔▔▔▔▔▔") + PINK("▔▔▔▔▔▔▔▔▔▔▔▔") + DIM("  banner helper"))
-    else:
-        print("\n".join("   " + r for r in rows))
-        print("   Tik: RCFO - banner helper")
+    for r in title_rows():
+        print("   " + r)
+    print("   " + CYAN("▔▔▔▔▔▔▔▔") + PINK("▔▔▔▔▔▔▔▔▔▔▔▔") + DIM("  banner helper"))
     print()
 
 
@@ -106,14 +106,6 @@ def ask(prompt: str) -> str:
 
 def wait_enter(prompt: str = "Press Enter when done") -> None:
     ask(f"{prompt}... ")
-
-
-def menu() -> str:
-    print()
-    print(f"   {CYAN('1')}  Add images")
-    print(f"   {CYAN('2')}  Close program")
-    print(f"   {PINK('3')}  Close program and erase all program data")
-    return ask("Choose 1, 2 or 3: ").strip()
 
 
 # --- Drag-and-drop / pasted paths ---------------------------------------------------------------
