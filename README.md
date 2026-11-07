@@ -8,11 +8,14 @@ the banner option unlocked. You sign in, open your profile and add your banner.
 > Whether *other people* see the banner has **not been confirmed yet** (see [What was tested](#what-was-tested)).
 
 ```
-   (fox)
+                        (fox)
+
+
  ▀█▀ ▀█▀ █ ▄▀ ▀█▀ █▀▀█ █ ▄▀   ▄   █▀▀█ █▀▀ █▀▀ █▀▀█
   █   █  ██▄   █  █  █ ██▄        █▀█▀ █   █▀▀ █  █
   ▀  ▀▀▀ ▀  ▀  ▀  ▀▀▀▀ ▀  ▀   ▀   ▀  ▀ ▀▀▀ ▀   ▀▀▀▀
                   tiktok.com/@rcfo
+      https://github.com/corrupt-account/foxi
        Banner unlock by: github.com/vanquzie
 
  Sign in to TikTok in the phone window, then go to:
@@ -46,8 +49,8 @@ python3 foxi.py
 
 On Windows run `py foxi.py`, or double-click `foxi.py`.
 
-Every screen shows the same header: the fox, the `TIKTOK : RCFO` heading, the link and the credits.
-Only the part underneath changes. foxi draws in the terminal's alternate screen, so old screens
+Every screen shows the same header, centred in the window: the fox, the `TIKTOK : RCFO` heading,
+the TikTok link, this project's link and the credits. Only the part underneath changes. foxi draws in the terminal's alternate screen, so old screens
 don't pile up in the scrollback. When foxi exits, its last screen (or an error with what to do
 next) stays in the terminal. It fits a 120 × 30 Mac Terminal window; smaller windows drop the
 heading or the fox.

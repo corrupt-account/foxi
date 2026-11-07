@@ -32,14 +32,17 @@ class Layout(unittest.TestCase):
                     self.assertGreaterEqual(u, 10, "fox should be above the URL")
                     centre = 119 / 2                                              # centred in the window
                     self.assertLessEqual(abs(plain[u].index("tiktok") + 8 - centre), 1.5)
-                    self.assertEqual(plain[u + 1].strip(), "Banner unlock by: github.com/vanquzie")
-                    self.assertLessEqual(abs(plain[u + 1].index("Banner") + 18.5 - centre), 1.5)
+                    self.assertEqual(plain[u + 1].strip(), "https://github.com/corrupt-account/foxi")
+                    self.assertEqual(plain[u + 2].strip(), "Banner unlock by: github.com/vanquzie")
+                    self.assertLessEqual(abs(plain[u + 2].index("Banner") + 18.5 - centre), 1.5)
+                    self.assertEqual(plain[u - 5:u - 3], ["", ""])                 # 2-line gap fox -> heading
+                    self.assertTrue(plain[u - 6].strip())
                     self.assertTrue(all("Tik: RCFO" not in l and "banner helper" not in l for l in plain))
                     if name == "menu":
                         menu = [l.strip() for l in plain[u + 2:]]
                         for item in ("1  Add images", "2  Close program", "3  Close program and erase all program data"):
                             self.assertIn(item, menu)
-                        self.assertEqual(len(body), len(out) - u - 3, "whole menu body visible")
+                        self.assertEqual(len(body), len(out) - u - 4, "whole menu body visible")
 
     def test_header_same_on_every_screen(self):
         with mock.patch.object(ui, "COLOUR", False):
@@ -75,11 +78,11 @@ class Layout(unittest.TestCase):
                     self.assertNotIn("\x1b[", out[u].replace("\x1b]8;;", ""))          # URL uncoloured
                     fox_rows = [l for l in plain[:u - 3] if l.strip()]                  # fox centred over heading
                     mid = 119 / 2
-                    left = min(len(l) - len(l.lstrip()) for l in plain[:u - 3])
-                    fox_w = max(len(l.rstrip()) for l in plain[:u - 3]) - left
+                    left = min(len(l) - len(l.lstrip()) for l in fox_rows)
+                    fox_w = max(len(l.rstrip()) for l in fox_rows) - left
                     self.assertTrue(fox_rows)
                     self.assertLessEqual(abs(left + fox_w / 2 - mid), 2)
-                    body = plain[u + 3]                                                  # body stays left
+                    body = plain[u + 4]                                                  # body stays left
                     self.assertTrue(body.startswith(" ") and not body.startswith("  "))
         self.assertLessEqual(screen.HEADING_WIDTH, 60)
         g = screen._GLYPHS                                    # spells exactly "TIKTOK : RCFO"

@@ -1,7 +1,8 @@
 """One left-aligned column, redrawn for every screen:
 
-    fox  ->  TIKTOK : RCFO (block letters, fox colours)  ->  tiktok.com/@rcfo
-         ->  "Banner unlock by: github.com/vanquzie"     (this header block is centred in the window)
+    fox  ->  2 blank lines  ->  TIKTOK : RCFO (block letters, fox colours)  ->  tiktok.com/@rcfo
+         ->  https://github.com/corrupt-account/foxi  ->  "Banner unlock by: github.com/vanquzie"
+         (this header block is centred in the window)
          ->  current body (left-aligned)
 
 The header has the same size on every screen (the fox is sized for BODY_ROWS lines of body),
@@ -20,6 +21,8 @@ from . import ui
 
 PROFILE_URL = "https://www.tiktok.com/@rcfo"
 CREDIT_URL = "https://github.com/vanquzie/TikProfileBanner"   # TikProfileBanner by vanquzie, GPL-3.0
+PROJECT_URL = "https://github.com/corrupt-account/foxi"       # this project
+FOX_GAP = 2             # blank lines between the fox and the heading
 BODY_ROWS = 11          # lines reserved under the header (tallest body: menu + 3 status + prompt)
 FOX_MAX_ROWS = 15
 FOX_MIN_ROWS = 6
@@ -79,26 +82,30 @@ def url_line() -> str:
     return link("tiktok.com/@rcfo", PROFILE_URL)                                   # plain, no colour
 
 
+def project_line() -> str:
+    return link(PROJECT_URL, PROJECT_URL)                                           # plain, like the TikTok link
+
+
 def credit_line() -> str:
     return _c("38;2;128;132;140", "Banner unlock by: ") + _c("38;2;128;132;140", link("github.com/vanquzie", CREDIT_URL))
 
 
 def header(columns: int, rows: int) -> list[str]:
-    """Fox, heading, URL and credits as one block, centred in the terminal window."""
-    avail = rows - BODY_ROWS - 3                          # 3 = url + credit + spacer
+    """Fox, gap, heading, URLs and credits as one block, centred in the terminal window."""
+    avail = rows - BODY_ROWS - 4                          # 4 = tiktok url + project url + credit + spacer
     show_heading = avail >= len(HEADING) and HEADING_WIDTH <= columns - 1 - len(INDENT)
-    fox_h = min(FOX_MAX_ROWS, avail - (len(HEADING) if show_heading else 0))
+    fox_h = min(FOX_MAX_ROWS, avail - (len(HEADING) if show_heading else 0) - FOX_GAP)
     fox_w = round(fox_h * 2 * fox._SOURCE_W / fox._SOURCE_H)
     block: list[str] = []
     if fox_h >= FOX_MIN_ROWS and fox_w <= columns - 2:
-        block += fox._art(fox_w, fox_h, ui.COLOUR)
+        block += fox._art(fox_w, fox_h, ui.COLOUR) + [""] * FOX_GAP
     if show_heading:
         block += heading_rows()
-    block += [url_line(), credit_line()]
+    block += [url_line(), project_line(), credit_line()]
     width = HEADING_WIDTH if show_heading else max(visible_len(l) for l in block)
     usable = columns - 1                                  # never touch the last column (no wrap)
     pad = " " * max(0, (usable - width) // 2)             # block centred in the window
-    return [pad + centred(l, width) for l in block] + [""]
+    return [(pad + centred(l, width)) if l else "" for l in block] + [""]
 
 
 def centred(s: str, width: int) -> str:
