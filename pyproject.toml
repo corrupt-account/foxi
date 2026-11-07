@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "foxi"
-version = "0.3.0"
+version = "0.3.1"
 description = "Set a TikTok profile banner from your computer via a private Android emulator."
 readme = "README.md"
 license = { text = "MIT" }
@@ -12,7 +12,7 @@ requires-python = ">=3.9"
 dependencies = []  # standard library only
 
 [project.scripts]
-foxi = "rcfo.app:main"
+foxi = "foxi_core.app:main"
 
 [tool.setuptools]
-packages = ["rcfo"]
+packages = ["foxi_core"]

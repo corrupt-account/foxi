@@ -13,8 +13,7 @@ from . import installer
 from . import screen
 from . import ui
 
-STATUS_ROWS = 3
-MENU = ["Sign in to TikTok in the phone window, then go to:"]
+STATUS_ROWS = 1         # one summary line under the menu (keeps room for a bigger fox)
 
 
 def start_tiktok() -> list[str]:
@@ -28,13 +27,12 @@ def start_tiktok() -> list[str]:
                           "Run with --erase, then start again to rebuild.")
     if A.module_active():
         return [screen.ok("TikTok is open in the phone window, banner module active.")]
-    return [screen.warn("TikTok is open, but the banner module didn't report in ('Add background' may be"),
-            screen.warn("missing). Choose 2 and start foxi again; that usually fixes it.")]
+    return [screen.warn("Banner module didn't load ('Add background' may be missing): choose 2, then start foxi again.")]
 
 
 def menu_body(status: list[str]) -> list[str]:
-    body = [screen.title(MENU[0]),
-            f"Profile → Edit profile → {ui.CYAN('Add background')} → Upload photo → {ui.CYAN('Banners')}", "",
+    body = [ui.WHITE("Sign in, then: ") + f"Profile → Edit profile → {ui.CYAN('Add background')} → "
+            f"Upload photo → {ui.CYAN('Banners')}", "",
             f"{ui.CYAN('1')}  Add images",
             f"{ui.CYAN('2')}  Close program",
             f"{ui.PINK('3')}  Close program and erase all program data"]
@@ -47,12 +45,12 @@ def add_images(raw: str) -> list[str]:
     if not paths:
         return []
     existing = set(A.shell(f"ls {C.DEVICE_ALBUM} 2>/dev/null").split("\n"))
-    out: list[str] = []
-    added = 0
+    added: list[str] = []
+    problems: list[str] = []
     for p in paths:
         path, kind = ui.check_image(p)
         if path is None:
-            out.append(screen.warn(kind))
+            problems.append(kind)
             continue
         name = ui.device_name(path, existing)
         A.push_image(path, name)
@@ -61,16 +59,18 @@ def add_images(raw: str) -> list[str]:
             if A.in_gallery(name):
                 break
             time.sleep(1)
-        else:
-            out.append(screen.warn(f"{name} copied; the photo picker should list it shortly."))
-        out.append(screen.ok(f"Added {name} ({kind}) to the Banners album"))
-        added += 1
-    if len(out) > STATUS_ROWS - 1:
-        hidden = len(out) - (STATUS_ROWS - 1)
-        out = [screen.note(f"({hidden} earlier message(s) not shown)")] + out[-(STATUS_ROWS - 1):]
-    if added:
-        out.append(screen.note("In TikTok: Add background → Upload photo → Banners. Add more with 1."))
-    return out[-STATUS_ROWS:]
+        added.append(f"{name} ({kind})")
+    return [summary(added, problems)]
+
+
+def summary(added: list[str], problems: list[str]) -> str:
+    """One status line for the menu: what was added, and the first problem if any."""
+    if not added:
+        return screen.warn(problems[0] + (f" (+{len(problems) - 1} more)" if len(problems) > 1 else ""))
+    what = f"Added {added[0]}" if len(added) == 1 else f"Added {len(added)} images"
+    if problems:
+        return screen.warn(f"{what}; skipped {len(problems)}: {problems[0]}")
+    return screen.ok(f"{what} to Banners. In TikTok: Add background → Upload photo → Banners.")
 
 
 def close() -> None:
@@ -112,7 +112,7 @@ def remove_app_dir() -> None:
 
 def fail(message: str) -> None:
     """Final screen for an error: stays visible, with what to do next."""
-    lines = [screen.warn(l) for l in message.splitlines() if l.strip()][:6]
+    lines = [screen.warn(l) for l in message.splitlines() if l.strip()][:4]
     screen.show(lines + ["",
                          screen.note("Run  python3 foxi.py  again to retry; finished steps are skipped."),
                          screen.note("To start over from nothing:  python3 foxi.py --erase")])

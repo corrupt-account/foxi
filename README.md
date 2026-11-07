@@ -18,8 +18,7 @@ the banner option unlocked. You sign in, open your profile and add your banner.
       https://github.com/corrupt-account/foxi
        Banner unlock by: github.com/vanquzie
 
- Sign in to TikTok in the phone window, then go to:
- Profile → Edit profile → Add background → Upload photo → Banners
+ Sign in, then: Profile → Edit profile → Add background → Upload photo → Banners
 
  1  Add images
  2  Close program

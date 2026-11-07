@@ -11,7 +11,7 @@ if sys.version_info < (3, 9):
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from rcfo.app import main  # noqa: E402
+from foxi_core.app import main  # noqa: E402
 
 def _own_console_window() -> bool:
     """True when Windows opened a console just for us (double-click), so it would vanish on exit."""

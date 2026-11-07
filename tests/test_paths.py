@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from rcfo import app, config as C, ui
+from foxi_core import app, config as C, ui
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
 JPG = b"\xff\xd8\xff\xe0" + b"\x00" * 16

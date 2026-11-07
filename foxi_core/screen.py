@@ -23,7 +23,7 @@ PROFILE_URL = "https://www.tiktok.com/@rcfo"
 CREDIT_URL = "https://github.com/vanquzie/TikProfileBanner"   # TikProfileBanner by vanquzie, GPL-3.0
 PROJECT_URL = "https://github.com/corrupt-account/foxi"       # this project
 FOX_GAP = 2             # blank lines between the fox and the heading
-BODY_ROWS = 11          # lines reserved under the header (tallest body: menu + 3 status + prompt)
+BODY_ROWS = 8           # lines reserved under the header (tallest body incl. prompt: setup step 6)
 FOX_MAX_ROWS = 15
 FOX_MIN_ROWS = 6
 INDENT = " "
@@ -183,4 +183,4 @@ def title(text: str) -> str:
 
 
 def step_body(n: int, total: int, text: str) -> list[str]:
-    return [ui.CYAN(f"First-time setup · step {n} of {total}"), title(text), ""]
+    return [ui.CYAN(f"Setup {n}/{total} · ") + title(fit(text, width() - 12)), ""]

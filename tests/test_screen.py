@@ -2,17 +2,17 @@
 import unittest
 from unittest import mock
 
-from rcfo import app, screen, ui
+from foxi_core import app, screen, ui
 
 
 def bodies():
-    """The tallest real screens: menu with 3 status lines, Magisk instructions, an error."""
-    status = [screen.ok("x" * 300)] * 3
+    """The tallest real screens: menu with a status line, Magisk instructions, an error."""
+    status = [screen.ok("x" * 300)]
     magisk = screen.step_body(6, 7, "Installing the Vector (LSPosed) framework") + [
         screen.warn("One-time step in the phone window (Magisk is open there):"),
         "1. a", "2. b", "3. c", "4. d"]
     return {"menu": app.menu_body(status), "magisk": magisk,
-            "error": [screen.warn("e")] * 6 + ["", screen.note("retry"), screen.note("erase")]}
+            "error": [screen.warn("e")] * 4 + ["", screen.note("retry"), screen.note("erase")]}
 
 
 class Layout(unittest.TestCase):
@@ -37,12 +37,18 @@ class Layout(unittest.TestCase):
                     self.assertLessEqual(abs(plain[u + 2].index("Banner") + 18.5 - centre), 1.5)
                     self.assertEqual(plain[u - 5:u - 3], ["", ""])                 # 2-line gap fox -> heading
                     self.assertTrue(plain[u - 6].strip())
-                    self.assertTrue(all("Tik: RCFO" not in l and "banner helper" not in l for l in plain))
                     if name == "menu":
                         menu = [l.strip() for l in plain[u + 2:]]
                         for item in ("1  Add images", "2  Close program", "3  Close program and erase all program data"):
                             self.assertIn(item, menu)
                         self.assertEqual(len(body), len(out) - u - 4, "whole menu body visible")
+
+    def test_fox_size_at_120x30(self):
+        with mock.patch.object(ui, "COLOUR", False):
+            out = screen.render(bodies()["menu"], 120, 30)
+            u = next(i for i, l in enumerate(out) if "tiktok.com/@rcfo" in l)
+            fox_rows = [l for l in out[:u - 5] if l.strip()]
+            self.assertGreaterEqual(len(fox_rows), 13)
 
     def test_header_same_on_every_screen(self):
         with mock.patch.object(ui, "COLOUR", False):

@@ -21,7 +21,7 @@ source and checks it against a pinned checksum before use:
 
 **Included in this repository:**
 
-- The fox portrait in `rcfo/fox.py` comes from `fox_ascii.py`, supplied by the project owner.
+- The fox portrait in `foxi_core/fox.py` comes from `fox_ascii.py`, supplied by the project owner.
 
 foxi doesn't modify or redistribute any of the GPL-3.0 components above. If you redistribute
 them yourself, include their licenses and source links as GPL-3.0 requires.

@@ -98,6 +98,7 @@ def unzip(zpath: Path, into: Path) -> None:
 def install_package(name: str, url: str, sha1: str, top: str, dest: Path) -> None:
     if dest.exists():
         return
+    begin(2, "Android emulator and system image (about 2.6 GB download, first time only)")  # one package per screen
     screen.say(f"downloading {name}")
     z = fetch(url, sha1, "sha1")
     screen.say(f"unpacking {name}")
@@ -166,13 +167,13 @@ def find_tiktok_apk() -> Path:
     for p in sorted(downloads.glob("*.apk")) if downloads.is_dir() else []:
         if 400e6 < p.stat().st_size < 600e6 and digest(p, "sha256") == C.TIKTOK_APK_SHA256:
             return p
-    screen.say(screen.warn(f"TikTok {C.TIKTOK_VERSION} APK not found in {C.BUNDLED_APK.parent}"))
-    screen.say(screen.note("Put it there (see apk/README.md for the exact file), or drag it in below."))
+    screen.say(screen.warn(f"TikTok {C.TIKTOK_VERSION} APK not found in {C.BUNDLED_APK.parent} (see apk/README.md)."))
     while True:
         paths = ui.parse_paths(ui.ask("Drag the .apk file here and press Enter: "))
         p = ui._existing(paths[0]) if paths else None
         if p and p.is_file() and digest(p, "sha256") == C.TIKTOK_APK_SHA256:
             return p
+        begin(7, f"Installing TikTok {C.TIKTOK_VERSION} and the banner module")
         screen.say(screen.warn("That isn't the official TikTok 47.1.3 APK. Try again."))
 
 
