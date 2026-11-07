@@ -1,0 +1,26 @@
+# Never commit APKs, system images, photos or logs
+*.apk
+*.img
+*.zip
+*.log
+.emulator.log
+photos/
+.downloads/
+
+# Python / OS / local tooling
+__pycache__/
+*.egg-info/
+.venv/
+.env
+.DS_Store
+.claude-flow/
+.claude/
+
+# stray images dropped into the project folder
+*.gif
+*.GIF
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.webp

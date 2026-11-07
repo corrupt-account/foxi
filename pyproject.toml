@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tik-rcfo"
+version = "0.2.0"
+description = "Set a TikTok profile banner from your computer via a private Android emulator."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = []  # standard library only
+
+[project.scripts]
+tik-rcfo = "rcfo.app:main"
+
+[tool.setuptools]
+packages = ["rcfo"]
