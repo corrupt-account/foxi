@@ -15,12 +15,14 @@ it can only orchestrate an Android environment.
 
 ## Options compared
 
-### 1. Local Python program (chosen): `tik_rcfo.py`
+### 1. Local Python program (chosen): `foxi.py`
 Python 3 (standard library only). On first launch it downloads Google's emulator, platform-tools
 and Android 15 image directly from `dl.google.com` (pinned versions, Google's SHA-1s), so no Java,
-`sdkmanager` or `avdmanager` is needed. It writes the virtual phone's config itself, and keeps
-everything in `~/.tik-rcfo` with its own adb server port. Later launches go straight to a
-three-item menu. The emulator window is the UI, and the user types into the real TikTok app.
+`sdkmanager` or `avdmanager` is needed. It writes the virtual phone's config itself, installs TikTok
+from `apk/TikTok-47.1.3.apk` (checked by SHA-256), and keeps everything in `~/.foxi` with its own
+adb server port. Later launches go straight to a three-item menu. Each screen is redrawn in the
+terminal's alternate screen under a fixed header (fox, `TIKTOK : RCFO`, link, credits). The
+emulator window is where the user types into the real TikTok app.
 (An earlier version also drove the screen with `uiautomator` to open Edit profile automatically.
 That was dropped because blind taps on TikTok's feed were unreliable; the user now navigates.)
 

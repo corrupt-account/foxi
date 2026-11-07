@@ -1,141 +1,201 @@
-# Tik: RCFO
+# foxi
 
 Set a **TikTok profile banner** (the background image behind your profile info) from your computer.
-One Python file starts a private Android phone in a window with the official TikTok app. You sign
-in, open your profile, and add your banner.
+`foxi.py` starts a private Android phone in its own window, running the official TikTok app with
+the banner option unlocked. You sign in, open your profile and add your banner.
 
 > **Status: experimental.** The **Add background** button appears and TikTok accepts the upload.
 > Whether *other people* see the banner has **not been confirmed yet** (see [What was tested](#what-was-tested)).
 
+```
+   (fox)
+ ▀█▀ ▀█▀ █ ▄▀ ▀█▀ █▀▀█ █ ▄▀   ▄   █▀▀█ █▀▀ █▀▀ █▀▀█
+  █   █  ██▄   █  █  █ ██▄        █▀█▀ █   █▀▀ █  █
+  ▀  ▀▀▀ ▀  ▀  ▀  ▀▀▀▀ ▀  ▀   ▀   ▀  ▀ ▀▀▀ ▀   ▀▀▀▀
+                  tiktok.com/@rcfo
+       Banner unlock by: github.com/vanquzie
+
+ Sign in to TikTok in the phone window, then go to:
+ Profile → Edit profile → Add background → Upload photo → Banners
+
+ 1  Add images
+ 2  Close program
+ 3  Close program and erase all program data
+ › Choose 1, 2 or 3:
+```
+
 ## You need
 
-- **Python 3.9 or newer.** It isn't installed by the program.
-  macOS: `brew install python` or [python.org](https://www.python.org/downloads/) ·
-  Windows: [python.org](https://www.python.org/downloads/) (tick "Add python.exe to PATH") or `winget install Python.Python.3.12` ·
-  Linux: usually preinstalled.
-- A **supported computer** (see the table below) with hardware virtualization turned on.
-- **About 14 GB free disk** for the first launch (about 9 GB stays used afterwards), and an internet connection.
-- **TikTok 47.1.3 APK**, downloaded by you once from
-  [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/tiktok-47-1-3-android-apk-download/)
-  (the APK, not the bundle). The program checks it is byte-for-byte TikTok's official file.
+- **Python 3.9 or newer.** foxi doesn't install it.
+  - macOS: `brew install python` or [python.org](https://www.python.org/downloads/)
+  - Windows: [python.org](https://www.python.org/downloads/) (tick "Add python.exe to PATH") or `winget install Python.Python.3.12`
+  - Linux: usually preinstalled
+- **A supported computer** (see [Platforms](#platforms)) with hardware virtualization turned on.
+- **About 14 GB free disk** for the first start (about 9 GB stays in use afterwards), and an internet connection.
+- **The TikTok 47.1.3 APK** in the `apk/` folder (see [The TikTok APK](#the-tiktok-apk)).
 
-Nothing else: no pip packages, Java, Android Studio or git.
+No pip packages, Java, Android Studio or git are needed. foxi uses only Python's standard library.
 
-## Use
+## Start
+
+From the `foxi` folder:
 
 ```bash
-python3 tik_rcfo.py          # Windows: py tik_rcfo.py  (or double-click the file)
+python3 foxi.py
 ```
 
-**First launch** (20–40 min, mostly downloads) sets up everything inside one folder, `~/.tik-rcfo`,
-with step-by-step progress:
+On Windows run `py foxi.py`, or double-click `foxi.py`.
 
-1. Checks the computer and free disk space.
-2. Downloads Google's Android emulator and Android 15 system image (≈2.6 GB, checksum-verified).
-3. Creates a virtual phone (Galaxy S24 screen size).
-4. Downloads Magisk, Vector (LSPosed), rootAVD and TikProfileBanner (checksum-verified). It
-   finds the TikTok APK in your Downloads folder, or asks you to drag it into the window.
-5. Roots the virtual phone.
-6. **Two short one-time steps in the phone window** (the program shows exactly what to tap):
-   enable Zygisk and install Vector in Magisk, then switch the banner module on.
-7. Installs TikTok and checks the banner module is active.
+Every screen shows the same header: the fox, the `TIKTOK : RCFO` heading, the link and the credits.
+Only the part underneath changes. foxi draws in the terminal's alternate screen, so old screens
+don't pile up in the scrollback. When foxi exits, its last screen (or an error with what to do
+next) stays in the terminal. It fits a 120 × 30 Mac Terminal window; smaller windows drop the
+heading or the fox.
 
-**Later launches** skip all of that: the phone and TikTok open in about 15 seconds.
+### First start (20–40 minutes, mostly downloads)
 
-Then TikTok is open in the phone window. Sign in yourself (password and codes go only into TikTok's
-own screen; the program never reads or stores them), go to **Profile → Edit profile → Add background
-→ Upload photo**, and pick from the **Banners** album. The terminal shows:
+foxi sets everything up in `~/.foxi`, one step per screen:
+
+1. **Checks the computer** and free disk space.
+2. **Downloads Google's Android emulator and Android 15 system image** (about 2.6 GB). All checksums are verified.
+3. **Creates a virtual phone** the size of a Galaxy S24 screen.
+4. **Downloads Magisk, Vector (LSPosed), rootAVD and TikProfileBanner.** All checksums are verified.
+5. **Roots the virtual phone.**
+6. **One-time taps in the phone window.** The screen shows exactly what to tap: switch on Zygisk
+   and install Vector in Magisk, then the phone restarts.
+7. **Installs TikTok** from `apk/TikTok-47.1.3.apk` and the banner module. The first time, you switch
+   the module on in the Vector manager (one tap, shown on screen).
+
+If something fails, the screen says what happened. Run `python3 foxi.py` again and it continues
+from where it stopped.
+
+### Later starts (about 15 seconds)
+
+The phone and TikTok open straight away. Sign in yourself in the phone window. Your password and
+codes go only into TikTok's own screen; foxi never reads or stores them. Then go to
+**Profile → Edit profile → Add background → Upload photo**, and choose from the **Banners** album.
+
+### Menu
+
+- **1 · Add images.** Drag one or more image files into the terminal window, or paste a path, and
+  press Enter. JPG, PNG, WebP and HEIC work, including names with spaces, quotes or non-Latin
+  letters. Each image goes into the phone's **Banners** album while TikTok stays open, and you're
+  back at the menu.
+- **2 · Close program.** Shuts down the phone and foxi's own adb server. Your setup and TikTok
+  sign-in are kept for next time.
+- **3 · Close program and erase all program data.** Type `ERASE` to confirm. foxi signs TikTok out
+  on the phone, shuts down and deletes `~/.foxi`: the phone, the sign-in, imported images,
+  downloads and settings. The next start is a first start again. The `apk/` folder is kept.
+  If setup ever gets stuck: `python3 foxi.py --erase`.
+
+## The TikTok APK
+
+The banner module only works with **TikTok 47.1.3**. foxi installs it from:
 
 ```
-   1  Add images
-   2  Close program
-   3  Close program and erase all program data
+foxi/apk/TikTok-47.1.3.apk
 ```
 
-- **1 · Add images.** Drag one or more image files into the terminal (or paste a path) and press
-  Enter. JPG, PNG, WebP and HEIC are accepted. Each is copied into the phone's **Banners** album
-  while TikTok stays open, and you're back at the menu.
-- **2 · Close program.** Shuts down the phone and the program's own adb server. Your setup and
-  TikTok sign-in are kept for next time.
-- **3 · Close and erase.** Asks you to type `ERASE`, signs TikTok out on the phone, shuts down,
-  then deletes `~/.tik-rcfo` (the phone, sign-in, imported images, downloads, settings). The next
-  launch is a first launch again. If setup ever fails halfway: `python3 tik_rcfo.py --erase`.
+| | |
+|---|---|
+| Version | TikTok 47.1.3 (`com.zhiliaoapp.musically`), single APK (not a bundle) |
+| Source | [APKMirror: TikTok 47.1.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/tiktok-47-1-3-android-apk-download/) |
+| SHA-256 | `8b5569f592a5534652ae460ef1d9e7f7394b5b7fdde44ae64f106d76767e2622` |
+| Signing certificate SHA-256 | `9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba` (TikTok's own key) |
 
-Isolation: everything lives in `~/.tik-rcfo` (change it with `TIK_RCFO_HOME`, see
-[.env.example](.env.example)). The program uses its own emulator copy, its own adb server port
-(5038) and its own phone. It never modifies an Android SDK you already have, and erasing never
-touches anything outside that folder. adb may read your existing `~/.android/adbkey`; it is left alone.
+foxi installs the file only if its SHA-256 matches exactly. **The APK is not in the GitHub
+repository**: it's TikTok's copyrighted app, and at 450 MB it's over GitHub's file-size limit. If
+you cloned the repo, download that exact file and save it as `apk/TikTok-47.1.3.apk`. If it's
+missing, foxi also looks in your Downloads folder, then asks you to drag the file into the window.
 
 ## Platforms
 
-The program has to **run on a computer** that can run Google's Android emulator. Phones can't run
-it, and nothing is hosted online: publishing this code doesn't run a server anywhere.
+foxi has to **run on a computer** that can run Google's Android emulator. Phones can't run it, and
+nothing is hosted online: publishing this code doesn't run a server anywhere.
 
-| Platform | Can run it? | Tested? |
+| Platform | Can run foxi? | Tested? |
 |---|---|---|
-| macOS, Apple Silicon | Yes | **Yes**: setup, later launches, image import, close, erase (details below) |
-| macOS, Intel | Yes (x86_64 emulator + image) | No |
-| Windows 10/11 x64 | Yes (needs *Windows Hypervisor Platform* turned on; uses rootAVD's `.bat`) | No |
-| Linux x64 | Yes (needs KVM: your user in the `kvm` group) | No |
-| Windows on ARM, Linux on ARM | **No**: Google publishes no emulator for these | n/a |
-| Android phone / iPhone | **No**: can't run the emulator. From a phone you can only remote-control a computer that runs it. | No |
+| macOS, Apple Silicon | Yes | **Yes** (details below) |
+| macOS, Intel | Yes (x86_64 emulator and image) | No |
+| Windows 10/11 x64 | Yes (turn on *Windows Hypervisor Platform*; uses rootAVD's `.bat`) | No |
+| Linux x64 | Yes (needs KVM: add your user to the `kvm` group) | No |
+| Windows on ARM, Linux on ARM | **No**: Google publishes no emulator for them | n/a |
+| Android phone / iPhone | **No**: can't run the emulator. From a phone you can only remote-control a computer running foxi. | No |
 
-Facts behind this table: Google's emulator package (`repository2-3.xml`) exists only for macOS
-arm64/x64, Windows x64 and Linux x64. rootAVD ships `.sh` (macOS/Linux) and `.bat` (Windows).
-Known untested risks on Windows: a user folder with non-ASCII characters or spaces can break
-the emulator or rootAVD; if it does, set `TIK_RCFO_HOME` to a simple path like `C:\tik-rcfo`.
+Google's emulator package exists only for macOS arm64/x64, Windows x64 and Linux x64. rootAVD
+ships `.sh` (macOS/Linux) and `.bat` (Windows). If a Windows user folder with spaces or non-ASCII
+letters breaks the emulator, set `FOXI_HOME` to a simple path such as `C:\foxi-data`.
+
+## Settings and data
+
+foxi needs no configuration. Everything it creates lives in one folder, `~/.foxi`:
+
+- its own copy of the Android emulator and tools
+- the virtual phone, including your TikTok sign-in
+- downloads and settings
+
+It runs its own adb server on port 5038, never modifies an Android SDK you already have, and
+"erase" never touches anything outside `~/.foxi`. adb may read an existing `~/.android/adbkey`,
+which is left alone. Optional environment variables are listed in [.env.example](.env.example).
 
 ## What was tested
 
 On a Mac with Apple Silicon (macOS 26), 2026-11-07:
 
-- ✅ **First-launch pieces:**
-  - The disk-space check refused correctly with too little space.
-  - Downloading, checksum-verifying and unpacking the emulator, platform tools and Android 15 image into an empty folder worked.
-  - The generated virtual phone booted.
-  - The root step worked on a clean image (Magisk running afterwards).
-- ✅ **Resuming setup** on an existing phone: steps already done were detected, rooting re-ran,
-  and Vector and the module were found active.
-- ✅ **Later launch:** TikTok opened with the module active, in about 15 s.
-- ✅ **Image import:**
-  - macOS drag-and-drop with escaped spaces and parentheses
+- ✅ **First start from nothing.**
+  - foxi downloaded, checked and unpacked the Android tools, created the phone and rooted it.
+  - The one-time Magisk/Vector taps were then done by hand, and setup finished.
+  - The low-disk check refuses cleanly.
+- ✅ **Later start:** TikTok opens with the banner module active.
+- ✅ **Screens in a real 120 × 30 Mac Terminal:** startup, a setup step, the menu and the closed
+  screen all fit without wrapping, the prompt stays visible, and the scrollback holds a single header.
+- ✅ **Adding images:**
+  - a Finder drag with escaped spaces and brackets
   - a quoted Arabic file name
-  - a `file://` URI
-  - a duplicate name (renamed)
-  - a missing file and a GIF (both rejected with a message)
-- ✅ **Close** (nothing left running) and **erase**: a wrong confirmation cancels; `ERASE` deletes only the program folder.
-- ✅ **Banner:** the button showed for a real account, and TikTok accepted the upload and showed it.
-- ⚠️ After restarting TikTok, the owner's own app no longer shows the banner. The module author
-  says TikTok never sends your banner back to you, so it **must be checked from another account**.
-  That hasn't been done yet.
-- ❌ **Not tested:**
-  - a complete first launch from zero in one run (this Mac lacked disk space)
-  - the two manual Magisk/Vector steps on a fresh phone
-  - installing TikTok from a fresh APK
+  - a `file://` path
+  - a duplicate name (gets a number)
+  - a missing file and a GIF (both refused with a message)
+- ✅ **Close** leaves nothing running. **Erase** (tested on a copy): a wrong confirmation cancels;
+  `ERASE` deletes only the data folder.
+- ✅ **Banner:** the button appeared for a real account, and TikTok accepted and displayed the upload.
+- ⚠️ **Visibility to others not checked.** After TikTok restarts, the owner's own app no longer
+  shows the banner. The module author says TikTok never sends your banner back to you, so it has
+  to be **checked from another account**. That hasn't been done yet.
+- ❌ **Not tested yet:**
+  - installing TikTok from `apk/` during setup (the APK was added to the folder after setup had finished)
   - Windows, Linux and Intel Macs
 
-Offline tests (path parsing, image checks, erase safety): `python3 -m unittest discover -s tests`.
+Offline tests (paths, images, erase safety, screen layout at many window sizes):
+
+```bash
+python3 -m unittest discover -s tests
+```
 
 ## Why an emulator, not the website or an API?
 
 Checked on 2026-11-07:
-- The tiktok.com website has no banner setting. Its profile code only uploads avatars, and public
+
+- **Website:** tiktok.com has no banner setting. Its profile code only uploads avatars, and public
   profile data has no banner field.
-- TikTok's developer API is read-only for profiles.
-- The app (47.1.3) contains the feature but hides it from accounts that aren't on TikTok's allow
-  list. The GPL-3.0 [TikProfileBanner](https://github.com/vanquzie/TikProfileBanner) module
-  un-hides it, which needs a rooted Android with LSPosed. More detail in [docs/architecture.md](docs/architecture.md).
+- **Developer API:** TikTok's API is read-only for profiles.
+- **App:** version 47.1.3 contains the feature but hides it from accounts that aren't on TikTok's
+  allow list. [TikProfileBanner](https://github.com/vanquzie/TikProfileBanner) un-hides it, which
+  needs a rooted Android phone with LSPosed.
+
+More detail is in [docs/architecture.md](docs/architecture.md).
 
 ## Risks
 
-- **Account risk:** this unlocks a feature TikTok hasn't given your account, using a rooted, modified
+- **Account risk:** this unlocks a feature TikTok hasn't given your account, on a rooted, modified
   client. That breaks TikTok's terms and could get the account flagged or restricted.
-- TikTok can drop banners server-side at any time. The module only works on TikTok **47.1.3**, so
-  never update TikTok inside the phone or add a Google account to it.
-- Only sign in with your own account. If a friend uses it, let them type, then use option 3.
+- **TikTok can drop banners server-side at any time.**
+- **Don't update TikTok:** the module only works on 47.1.3, so never update TikTok inside the phone
+  or add a Google account to it.
+- **Only sign in with your own account.** If a friend uses foxi, let them type, then use option 3.
 
-## Credits
+## Credits and licenses
 
-[TikProfileBanner](https://github.com/vanquzie/TikProfileBanner) · [Magisk](https://github.com/topjohnwu/Magisk) ·
-[Vector/LSPosed](https://github.com/JingMatrix/Vector) · [rootAVD](https://gitlab.com/newbit/rootAVD) ·
-Android Emulator by Google. Not affiliated with TikTok or ByteDance. License: MIT.
+- **Banner unlock:** [TikProfileBanner](https://github.com/vanquzie/TikProfileBanner) by
+  **vanquzie**, GPL-3.0. foxi downloads the author's release and doesn't modify or redistribute it.
+- Other components and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- foxi itself is MIT-licensed ([LICENSE](LICENSE)). It isn't affiliated with TikTok or ByteDance.
