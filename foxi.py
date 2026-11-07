@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Tik: RCFO - set a TikTok profile banner from your computer.
+"""foxi - set a TikTok profile banner from your computer.
 
-Run:  python3 tik_rcfo.py      (Windows: py tik_rcfo.py, or double-click)
+Run:  python3 foxi.py      (Windows: py foxi.py, or double-click)
 """
 import os
 import sys
 
 if sys.version_info < (3, 9):
-    sys.exit("Tik: RCFO needs Python 3.9 or newer: https://www.python.org/downloads/")
+    sys.exit("foxi needs Python 3.9 or newer: https://www.python.org/downloads/")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

@@ -17,9 +17,15 @@ from pathlib import Path
 
 from . import android as A
 from . import config as C
+from . import screen
 from . import ui
 
 TOTAL = 7
+
+
+def begin(n: int, text: str) -> None:
+    """New screen for a setup step: header + this step only (previous output is cleared)."""
+    screen.show(screen.step_body(n, TOTAL, text))
 
 
 # --- State --------------------------------------------------------------------------------------
@@ -54,7 +60,7 @@ def fetch(url: str, expected: str, algo: str = "sha256") -> Path:
         return dest
     C.CACHE_DIR.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_name(dest.name + ".part")
-    req = urllib.request.Request(url, headers={"User-Agent": "tik-rcfo-setup"})
+    req = urllib.request.Request(url, headers={"User-Agent": "foxi-setup"})
     with urllib.request.urlopen(req, timeout=60) as r, open(tmp, "wb") as f:
         total, done = int(r.headers.get("Content-Length") or 0), 0
         while chunk := r.read(1 << 20):
@@ -92,9 +98,9 @@ def unzip(zpath: Path, into: Path) -> None:
 def install_package(name: str, url: str, sha1: str, top: str, dest: Path) -> None:
     if dest.exists():
         return
-    ui.info(f"downloading {name}")
+    screen.say(f"downloading {name}")
     z = fetch(url, sha1, "sha1")
-    ui.info(f"unpacking {name}")
+    screen.say(f"unpacking {name}")
     stage = C.SDK_DIR / ".stage"
     shutil.rmtree(stage, ignore_errors=True)
     unzip(z, stage)
@@ -106,21 +112,21 @@ def install_package(name: str, url: str, sha1: str, top: str, dest: Path) -> Non
 
 # --- Steps --------------------------------------------------------------------------------------
 def step_check() -> None:
-    ui.step(1, TOTAL, "Checking this computer")
+    begin(1, "Checking this computer")
     if C.HOST is None:
         raise A.ToolError(f"Google's Android emulator doesn't run on {C.SYSTEM} {C.MACHINE}. "
                           "Supported: macOS (Apple Silicon or Intel), Windows x64, Linux x64.")
-    save_state(app="tik-rcfo")  # marks the folder as ours (checked before erasing it)
+    save_state(app="foxi")  # marks the folder as ours (checked before erasing it)
     if not C.emulator_path().exists():
         free = shutil.disk_usage(C.APP_DIR).free / 1e9
         if free < C.SETUP_FREE_GB:
             raise A.ToolError(f"First-time setup needs about {C.SETUP_FREE_GB} GB free disk space; "
                               f"this computer has {free:.1f} GB. Free some space and start again.")
-    ui.ok(f"{C.SYSTEM} {C.MACHINE}, program folder: {C.APP_DIR}")
+    screen.say(screen.ok(f"{C.SYSTEM} {C.MACHINE}, program folder: {C.APP_DIR}"))
 
 
 def step_sdk() -> None:
-    ui.step(2, TOTAL, "Android emulator and system image (about 2.6 GB download, first time only)")
+    begin(2, "Android emulator and system image (about 2.6 GB download, first time only)")
     pt, pt_sha = C.PLATFORM_TOOLS[C.SYSTEM]
     install_package("Android platform tools", C._G + pt, pt_sha, "platform-tools", C.SDK_DIR / "platform-tools")
     em, em_sha = C.EMULATOR[C.HOST]
@@ -135,55 +141,53 @@ def step_sdk() -> None:
                 "Linux": "Enable virtualization in the BIOS and add yourself to the 'kvm' group (sudo adduser $USER kvm)."}
         raise A.ToolError("Hardware virtualization isn't available, so the phone emulator can't run.\n"
                           f"{(accel.stdout or accel.stderr).strip()[-300:]}\n{hint.get(C.SYSTEM, '')}")
-    ui.ok("Android tools ready")
+    screen.say(screen.ok("Android tools ready"))
 
 
 def step_avd() -> None:
-    ui.step(3, TOTAL, "Creating the virtual phone")
+    begin(3, "Creating the virtual phone")
     avd = C.AVD_HOME / f"{C.AVD_NAME}.avd"
     if not (avd / "config.ini").exists():
         avd.mkdir(parents=True, exist_ok=True)
         (avd / "config.ini").write_text("".join(f"{k}={v}\n" for k, v in C.AVD_CONFIG.items()), encoding="utf-8")
         (C.AVD_HOME / f"{C.AVD_NAME}.ini").write_text(
             f"avd.ini.encoding=UTF-8\npath={avd}\npath.rel=avd/{C.AVD_NAME}.avd\ntarget=android-35\n", encoding="utf-8")
-    ui.ok("virtual phone ready (Galaxy S24 screen size)")
+    screen.say(screen.ok("virtual phone ready (Galaxy S24 screen size)"))
 
 
 def find_tiktok_apk() -> Path:
-    cached = C.CACHE_DIR / f"tiktok-{C.TIKTOK_VERSION}.apk"
-    if cached.exists() and digest(cached, "sha256") == C.TIKTOK_APK_SHA256:
-        return cached
+    """The APK shipped in foxi/apk/ (checked byte-for-byte); else ~/Downloads; else ask once."""
+    for p in (C.BUNDLED_APK, C.CACHE_DIR / f"tiktok-{C.TIKTOK_VERSION}.apk"):
+        if p.exists() and digest(p, "sha256") == C.TIKTOK_APK_SHA256:
+            return p
+    if C.BUNDLED_APK.exists():
+        screen.say(screen.warn(f"{C.BUNDLED_APK.name} in the apk folder is damaged or a different version."))
     downloads = Path.home() / "Downloads"
     for p in sorted(downloads.glob("*.apk")) if downloads.is_dir() else []:
         if 400e6 < p.stat().st_size < 600e6 and digest(p, "sha256") == C.TIKTOK_APK_SHA256:
-            shutil.copyfile(p, cached)
-            ui.info(f"found it in Downloads: {p.name}")
-            return cached
-    ui.warn(f"TikTok {C.TIKTOK_VERSION} has to be downloaded by you (one time). Get the APK (not the bundle) here:")
-    ui.info(ui.CYAN(C.TIKTOK_PAGE))
+            return p
+    screen.say(screen.warn(f"TikTok {C.TIKTOK_VERSION} APK not found in {C.BUNDLED_APK.parent}"))
+    screen.say(screen.note("Put it there (see apk/README.md for the exact file), or drag it in below."))
     while True:
-        raw = ui.ask("Drag the downloaded .apk file here and press Enter: ")
-        paths = ui.parse_paths(raw)
+        paths = ui.parse_paths(ui.ask("Drag the .apk file here and press Enter: "))
         p = ui._existing(paths[0]) if paths else None
         if p and p.is_file() and digest(p, "sha256") == C.TIKTOK_APK_SHA256:
-            C.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(p, cached)
-            return cached
-        ui.warn("That isn't the official TikTok 47.1.3 APK (file missing or checksum differs). Try again.")
+            return p
+        screen.say(screen.warn("That isn't the official TikTok 47.1.3 APK. Try again."))
 
 
 def step_files() -> dict[str, Path]:
-    ui.step(4, TOTAL, "Downloading Magisk, Vector (LSPosed), rootAVD and TikProfileBanner")
+    begin(4, "Downloading Magisk, Vector (LSPosed), rootAVD and TikProfileBanner")
     files = {k: fetch(u, h) for k, (u, h) in C.FILES.items()}
-    ui.ok("files downloaded and checksum-verified")
+    screen.say(screen.ok("files downloaded and checksum-verified"))
     return files
 
 
 def step_root(files: dict[str, Path]) -> None:
-    ui.step(5, TOTAL, "Rooting the virtual phone (Magisk)")
+    begin(5, "Rooting the virtual phone (Magisk)")
     img = C.SDK_DIR / C.SYS_IMG_REL / "ramdisk.img"
     if state().get("rooted_ramdisk") == digest(img, "sha256"):
-        ui.ok("already rooted")
+        screen.say(screen.ok("already rooted"))
         return
     work = C.WORK_DIR / "rootAVD"
     shutil.rmtree(work, ignore_errors=True)
@@ -192,9 +196,9 @@ def step_root(files: dict[str, Path]) -> None:
     shutil.copyfile(files["rootavd_bat"], work / "rootAVD.bat")
     shutil.copyfile(files["magisk"], work / "Magisk.zip")
     (work / "rootAVD.sh").chmod(0o755)
-    ui.info("starting the phone (first boot takes a few minutes)...")
+    screen.say("starting the phone (first boot takes a few minutes)...")
     A.start_emulator()
-    ui.info("patching (the phone shuts down when finished)...")
+    screen.say("patching (the phone shuts down when finished)...")
     script = ["cmd", "/c", "rootAVD.bat"] if C.IS_WINDOWS else ["bash", "./rootAVD.sh"]
     rel = C.SYS_IMG_REL.replace("/", "\\") if C.IS_WINDOWS else C.SYS_IMG_REL
     A.run([*script, f"{rel}{os.sep}ramdisk.img"], cwd=work, input="1\n\n\n", timeout=1800, check=False)
@@ -208,14 +212,14 @@ def step_root(files: dict[str, Path]) -> None:
         raise A.ToolError("Rooting did not complete. Start the program again to retry.")
     save_state(rooted_ramdisk=new)
     shutil.rmtree(work, ignore_errors=True)
-    ui.ok("rooted")
+    screen.say(screen.ok("rooted"))
 
 
 def step_framework(files: dict[str, Path]) -> None:
-    ui.step(6, TOTAL, "Installing the Vector (LSPosed) framework")
+    begin(6, "Installing the Vector (LSPosed) framework")
     A.start_emulator()
     if "vectord" in A.shell("ps -A"):
-        ui.ok("already installed")
+        screen.say(screen.ok("already installed"))
         return
     if not A.package_version("com.topjohnwu.magisk"):
         A.adb("install", str(files["magisk"]), timeout=300)
@@ -223,19 +227,19 @@ def step_framework(files: dict[str, Path]) -> None:
     A.adb("push", str(files["vector"]), target, timeout=300)
     A.media_scan(target)
     A.launch("com.topjohnwu.magisk")
-    ui.warn("Please do this in the phone window (one time only):")
+    screen.say(screen.warn("One-time step in the phone window (Magisk is open there):"))
     for line in ("1. If Magisk asks for 'Additional setup', tap OK. The phone restarts; open Magisk again.",
                  "2. Tap the gear (Settings) and switch ON 'Zygisk'.",
                  "3. Modules tab -> 'Install from storage' -> Downloads -> Vector-v2.2.zip -> OK.",
                  "4. When it says Done, tap 'Reboot'."):
-        ui.info(line)
+        screen.say(line)
     ui.wait_enter("Press Enter after the phone has restarted")
     A.wait_boot()
     time.sleep(10)
     if "vectord" not in A.shell("ps -A"):  # keep the zip on the phone so the user can retry right away
         raise A.ToolError("Vector isn't running yet. Start the program again and repeat the steps in Magisk.")
     A.shell(f"rm -f {target}")
-    ui.ok("Vector running")
+    screen.say(screen.ok("Vector running"))
 
 
 def open_vector_manager() -> None:
@@ -244,27 +248,26 @@ def open_vector_manager() -> None:
 
 
 def step_apps(files: dict[str, Path]) -> None:
-    ui.step(7, TOTAL, f"Installing TikTok {C.TIKTOK_VERSION} and the banner module")
+    begin(7, f"Installing TikTok {C.TIKTOK_VERSION} and the banner module")
     ver = A.package_version(C.TIKTOK_PKG)
     if ver != C.TIKTOK_VERSION:
         apk = find_tiktok_apk()
         if ver:
             A.adb("uninstall", C.TIKTOK_PKG)
-        ui.info("installing TikTok (about a minute)...")
+        screen.say(f"installing TikTok {C.TIKTOK_VERSION} from {apk.parent.name}/{apk.name} (about a minute)...")
         A.adb("install", str(apk), timeout=900)
-        apk.unlink()  # 450 MB we no longer need
     if not A.package_version(C.MODULE_PKG):
         A.adb("install", str(files["module"]), timeout=300)
     while not A.module_active():
         open_vector_manager()
-        ui.warn("Turn the module on in the phone window (one time only):")
-        ui.info("Modules -> TikProfileBanner -> switch ON -> tick TikTok.")
+        begin(7, f"Installing TikTok {C.TIKTOK_VERSION} and the banner module")
+        screen.say(screen.warn("One-time step in the phone window (the Vector manager is open there):"))
+        screen.say("Modules -> TikProfileBanner -> switch ON -> tick TikTok.")
         ui.wait_enter()
-    ui.ok("banner module active inside TikTok")
+    screen.say(screen.ok("banner module active inside TikTok"))
 
 
 def run_setup() -> None:
-    ui.info(ui.DIM("First launch: setting everything up. Later launches start straight away."))
     step_check()
     step_sdk()
     step_avd()
@@ -275,4 +278,3 @@ def run_setup() -> None:
     step_framework(files)
     step_apps(files)
     save_state(ready=True)
-    ui.ok("Setup complete")

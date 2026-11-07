@@ -1,4 +1,4 @@
-"""Terminal look (title, colours, progress) and drag-and-drop path handling."""
+"""Colours, input prompts, download progress and drag-and-drop path handling."""
 from __future__ import annotations
 
 import os
@@ -43,50 +43,13 @@ DIM = lambda s: _c("2", s)
 GREEN = lambda s: _c("32", s)
 
 
-_FONT = {  # 3-row block letters
-    "T": ("▀█▀", " █ ", " ▀ "), "i": ("▄", "█", "▀"), "k": ("█  ", "█▄▀", "▀ ▀"), ":": (" ", "▀", "▀"),
-    " ": ("  ", "  ", "  "), "R": ("█▀▄", "█▀▄", "▀ ▀"), "C": ("▄▀▀", "█  ", " ▀▀"),
-    "F": ("█▀▀", "█▀ ", "▀  "), "O": ("▄▀▄", "█ █", " ▀ "),
-}
-
-
-def title_rows() -> list[str]:
-    """'Tik: RCFO' in 3-row block letters, TikTok-style chromatic split (cyan / white / pink)."""
-    rows = [" ".join(_FONT[ch][r] for ch in "Tik: RCFO") for r in range(3)]  # 31 columns wide
-    return [_c("1;38;2;37;244;238", rows[0]), WHITE(rows[1]), _c("1;38;2;254;44;85", rows[2])]
-
-
-def title() -> None:
-    print()
-    for r in title_rows():
-        print("   " + r)
-    print("   " + CYAN("▔▔▔▔▔▔▔▔") + PINK("▔▔▔▔▔▔▔▔▔▔▔▔") + DIM("  banner helper"))
-    print()
-
-
-def step(n: int, total: int, text: str) -> None:
-    print(f"  {CYAN(f'[{n}/{total}]')} {WHITE(text)}", flush=True)
-
-
-def info(text: str) -> None:
-    print(f"        {text}", flush=True)
-
-
-def ok(text: str) -> None:
-    print(f"  {GREEN('✓')} {text}", flush=True)
-
-
-def warn(text: str) -> None:
-    print(f"  {PINK('!')} {text}", flush=True)
-
-
 def progress(label: str, done: int, total: int) -> None:
     if not sys.stdout.isatty():
         return
     width = 28
     frac = done / total if total else 0
     bar = CYAN("█" * int(frac * width)) + DIM("░" * (width - int(frac * width)))
-    sys.stdout.write(f"\r        {bar} {frac * 100:5.1f}%  {label[:30]:30}")
+    sys.stdout.write(f"\r {bar} {frac * 100:5.1f}%  {label[:30]:30}")
     sys.stdout.flush()
     if done >= total:
         sys.stdout.write("\n")
@@ -98,7 +61,7 @@ class InputClosed(Exception):
 
 def ask(prompt: str) -> str:
     try:
-        return input(f"  {PINK('›')} {prompt}")
+        return input(f" {PINK('›')} {prompt}")
     except EOFError:
         print()
         raise InputClosed from None

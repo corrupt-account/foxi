@@ -1,4 +1,4 @@
-"""Paths, pinned downloads and checksums.
+"""foxi: paths, pinned downloads and checksums.
 
 Everything this program creates lives under APP_DIR, so "erase all program data" is one folder.
 """
@@ -8,8 +8,9 @@ import os
 import platform
 from pathlib import Path
 
-APP_NAME = "Tik: RCFO"
-APP_DIR = Path(os.environ.get("TIK_RCFO_HOME") or Path.home() / ".tik-rcfo").expanduser()
+APP_NAME = "foxi"
+PROJECT_DIR = Path(__file__).resolve().parent.parent   # the foxi folder (foxi.py lives here)
+APP_DIR = Path(os.environ.get("FOXI_HOME") or Path.home() / ".foxi").expanduser()
 SDK_DIR = APP_DIR / "sdk"            # private Android SDK (emulator, adb, system image)
 AVD_HOME = APP_DIR / "avd"           # the emulator's virtual phone (login data lives here)
 ANDROID_USER_HOME = APP_DIR / "android"  # emulator settings that would otherwise go to ~/.android
@@ -18,7 +19,7 @@ WORK_DIR = APP_DIR / "work"
 STATE_FILE = APP_DIR / "state.json"
 EMULATOR_LOG = APP_DIR / "emulator.log"
 
-AVD_NAME = "TikRCFO"
+AVD_NAME = "Foxi"
 ADB_PORT = "5038"                    # own adb server, so closing never disturbs other Android tools
 CONSOLE_PORT = "5584"                # emulator console port -> serial "emulator-5584"
 SERIAL = f"emulator-{CONSOLE_PORT}"
@@ -72,6 +73,7 @@ TIKTOK_VERSION = "47.1.3"            # the module only hooks this exact build
 # SHA-256 of TikTok's own signed 47.1.3 APK (signer cert SHA-256 9041803e...2ab5ba, CN=musical.ly);
 # a matching hash means the file is byte-identical to TikTok's release.
 TIKTOK_APK_SHA256 = "8b5569f592a5534652ae460ef1d9e7f7394b5b7fdde44ae64f106d76767e2622"
+BUNDLED_APK = PROJECT_DIR / "apk" / f"TikTok-{TIKTOK_VERSION}.apk"   # shipped with the foxi folder
 TIKTOK_PAGE = ("https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/"
                "tiktok-47-1-3-release/tiktok-47-1-3-android-apk-download/")
 MODULE_PKG = "com.vanquzie.tikprofilebanner"

@@ -1,4 +1,5 @@
-"""Main flow: (first-time setup) -> start phone + TikTok -> menu."""
+"""Main flow: (first-time setup) -> start phone + TikTok -> menu. Every screen is redrawn below
+the same fox / link / credit header (see screen.py)."""
 from __future__ import annotations
 
 import shutil
@@ -9,24 +10,35 @@ from pathlib import Path
 from . import android as A
 from . import config as C
 from . import installer
-from . import panel
+from . import screen
 from . import ui
+
+STATUS_ROWS = 3
+MENU = ["Sign in to TikTok in the phone window, then go to:"]
 
 
 def start_tiktok() -> list[str]:
-    """Boot the phone and open TikTok; returns the first status lines for the menu screen."""
-    ui.step(1, 2, "Starting the phone")
+    """Boot the phone and open TikTok; returns the first status lines for the menu."""
+    screen.show([screen.title("Starting the phone…"), screen.note("(the phone opens in its own window)")])
     A.start_emulator()
-    ui.ok("phone running (see the phone window)")
-    ui.step(2, 2, "Opening TikTok")
+    screen.show([screen.ok("Phone running"), screen.title("Opening TikTok…")])
     ver = A.package_version(C.TIKTOK_PKG)
     if ver != C.TIKTOK_VERSION:
-        raise A.ToolError(f"TikTok {C.TIKTOK_VERSION} is not installed (found {ver or 'nothing'}). "
-                          "Choose option 3 and start again to rebuild.")
+        raise A.ToolError(f"TikTok {C.TIKTOK_VERSION} is not installed (found {ver or 'nothing'}).\n"
+                          "Run with --erase, then start again to rebuild.")
     if A.module_active():
-        return [panel.ok("TikTok is open in the phone window, banner module active.")]
-    return [panel.warn("TikTok is open, but the banner module didn't report in: 'Add background' may be"),
-            panel.warn("missing. Restarting the program (option 2, then start again) usually fixes it.")]
+        return [screen.ok("TikTok is open in the phone window, banner module active.")]
+    return [screen.warn("TikTok is open, but the banner module didn't report in ('Add background' may be"),
+            screen.warn("missing). Choose 2 and start foxi again; that usually fixes it.")]
+
+
+def menu_body(status: list[str]) -> list[str]:
+    body = [screen.title(MENU[0]),
+            f"Profile → Edit profile → {ui.CYAN('Add background')} → Upload photo → {ui.CYAN('Banners')}", "",
+            f"{ui.CYAN('1')}  Add images",
+            f"{ui.CYAN('2')}  Close program",
+            f"{ui.PINK('3')}  Close program and erase all program data"]
+    return body + ([""] + status[-STATUS_ROWS:] if status else [])
 
 
 def add_images(raw: str) -> list[str]:
@@ -40,7 +52,7 @@ def add_images(raw: str) -> list[str]:
     for p in paths:
         path, kind = ui.check_image(p)
         if path is None:
-            out.append(panel.warn(kind))
+            out.append(screen.warn(kind))
             continue
         name = ui.device_name(path, existing)
         A.push_image(path, name)
@@ -50,77 +62,83 @@ def add_images(raw: str) -> list[str]:
                 break
             time.sleep(1)
         else:
-            out.append(panel.warn(f"{name} copied; the photo picker should list it shortly."))
-        out.append(panel.ok(f"Added {name} ({kind}) to the Banners album"))
+            out.append(screen.warn(f"{name} copied; the photo picker should list it shortly."))
+        out.append(screen.ok(f"Added {name} ({kind}) to the Banners album"))
         added += 1
-    if len(out) > panel.STATUS_ROWS - 1:
-        hidden = len(out) - (panel.STATUS_ROWS - 1)
-        out = [panel.note(f"({hidden} earlier message(s) not shown)")] + out[-(panel.STATUS_ROWS - 1):]
+    if len(out) > STATUS_ROWS - 1:
+        hidden = len(out) - (STATUS_ROWS - 1)
+        out = [screen.note(f"({hidden} earlier message(s) not shown)")] + out[-(STATUS_ROWS - 1):]
     if added:
-        out.append(panel.note("In TikTok: Add background → Upload photo → Banners. Add more with 1."))
-    return out[-panel.STATUS_ROWS:]
+        out.append(screen.note("In TikTok: Add background → Upload photo → Banners. Add more with 1."))
+    return out[-STATUS_ROWS:]
 
 
 def close() -> None:
-    ui.info("Shutting down the phone (your sign-in and setup are kept)...")
+    screen.show([screen.title("Shutting down the phone…"), screen.note("Your setup and TikTok sign-in are kept.")])
     A.stop_all()
-    ui.ok("Closed. Start the program again any time.")
+    screen.show([screen.ok("Closed. Start foxi again any time:  python3 foxi.py")])
 
 
-def erase(interactive_panel: bool = True) -> bool:
-    lines = [panel.warn(f"This deletes {C.APP_DIR}: the phone, its TikTok sign-in, imported images,"),
-             panel.warn("downloads and settings. Nothing outside that folder is touched.")]
-    if interactive_panel:
-        panel.draw(lines)
-    else:
-        print("\n".join(lines))
+def erase() -> bool:
+    screen.show([screen.warn(f"This deletes {C.APP_DIR}"),
+                 screen.note("the phone, its TikTok sign-in, imported images, downloads and settings."),
+                 screen.note("Nothing outside that folder is touched (the apk folder is kept)."), ""])
     if ui.ask("Type ERASE to confirm (anything else cancels): ").strip().upper() != "ERASE":
         return False
-    ui.info("Signing out of TikTok on this phone and shutting down...")
+    screen.show([screen.title("Signing out of TikTok on the phone and shutting down…")])
     if A.is_running():
         A.shell(f"am force-stop {C.TIKTOK_PKG}")
         A.shell(f"pm clear {C.TIKTOK_PKG}")
     A.stop_all()
     remove_app_dir()
-    ui.ok("All program data erased. The next launch starts a fresh setup.")
+    screen.show([screen.ok("All program data erased. The next start is a fresh first-time setup.")])
     return True
 
 
 def remove_app_dir() -> None:
     target = C.APP_DIR.resolve()
     home = Path.home().resolve()
-    # Safety: only ever delete our own dedicated folder, never home or a filesystem root
-    if target in (home, Path(target.anchor)) or home.is_relative_to(target) or not (target / "state.json").exists():
-        raise A.ToolError(f"Refusing to delete {target}: it doesn't look like this program's folder.")
+    # Safety: only ever delete our own dedicated folder, never home, a root, or the project folder
+    if (target in (home, Path(target.anchor)) or home.is_relative_to(target)
+            or C.PROJECT_DIR.is_relative_to(target) or not (target / "state.json").exists()):
+        raise A.ToolError(f"Refusing to delete {target}: it doesn't look like foxi's data folder.")
     for _ in range(5):  # Windows may hold file locks for a moment after the emulator exits
         shutil.rmtree(target, ignore_errors=True)
         if not target.exists():
             return
         time.sleep(2)
-    raise A.ToolError(f"Some files in {target} could not be deleted; close other programs and delete it manually.")
+    raise A.ToolError(f"Some files in {target} could not be deleted.\nClose other programs and delete it manually.")
+
+
+def fail(message: str) -> None:
+    """Final screen for an error: stays visible, with what to do next."""
+    lines = [screen.warn(l) for l in message.splitlines() if l.strip()][:6]
+    screen.show(lines + ["",
+                         screen.note("Run  python3 foxi.py  again to retry; finished steps are skipped."),
+                         screen.note("To start over from nothing:  python3 foxi.py --erase")])
 
 
 def main() -> int:
     if sys.version_info < (3, 9):
-        print("Tik: RCFO needs Python 3.9 or newer.")
+        print("foxi needs Python 3.9 or newer.")
         return 1
-    ui.title()
+    screen.enter()
     try:
-        if "--erase" in sys.argv[1:]:  # escape hatch if setup can't finish: python3 tik_rcfo.py --erase
+        if "--erase" in sys.argv[1:]:  # escape hatch if setup can't finish
             if not C.APP_DIR.exists():
-                ui.ok("Nothing to erase.")
+                screen.show([screen.ok("Nothing to erase.")])
                 return 0
-            return 0 if erase(interactive_panel=False) else 1
+            return 0 if erase() else 1
         if not installer.is_ready():
             installer.run_setup()
-            print()
         status = start_tiktok()
         while True:
-            panel.draw(status)
+            screen.show(menu_body(status))
             choice = ui.ask("Choose 1, 2 or 3: ").strip()
             if choice == "1":
-                panel.draw([panel.note("Drag image files into this window (or paste a path), then press Enter."),
-                            panel.note("Press Enter on an empty line to go back.")])
+                screen.show([screen.title("Add images"),
+                             screen.note("Drag image files into this window (or paste a path), then press Enter."),
+                             screen.note("JPG, PNG, WebP or HEIC. Press Enter on an empty line to go back."), ""])
                 status = add_images(ui.ask("Image: "))
             elif choice == "2":
                 close()
@@ -128,18 +146,18 @@ def main() -> int:
             elif choice == "3":
                 if erase():
                     return 0
-                status = [panel.note("Erase cancelled.")]
+                status = [screen.note("Erase cancelled.")]
             else:
-                status = [panel.warn("Please type 1, 2 or 3.")] if choice else []
+                status = [screen.warn("Please type 1, 2 or 3.")] if choice else []
     except A.ToolError as e:
-        print()
-        ui.warn(str(e))
-        ui.info(ui.DIM("Run the program again to retry. To remove everything: tik_rcfo.py --erase"))
+        fail(str(e))
         return 2
     except ui.InputClosed:
         close()
         return 0
     except KeyboardInterrupt:
         print()
-        ui.info("Interrupted. The phone keeps running; start the program again and choose 2 to close it.")
+        fail("Interrupted. The phone may still be running.\nStart foxi again and choose 2 to close it cleanly.")
         return 130
+    finally:
+        screen.leave()
