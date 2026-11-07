@@ -7,7 +7,7 @@
 | tiktok.com website | No | Profile-update code uploads only `UserAvatar`-type images; public profile JSON (`webapp.user-detail`) has no banner/background field. |
 | Official TikTok API | No | Developer user endpoints (`/v2/user/info/`) are read-only; no profile-write endpoint. |
 | Stock Android app | Only for allow-listed accounts | TikTok 47.7.2 showed no option for the tester's account. |
-| Android app 47.1.3 + TikProfileBanner (LSPosed) | Button appears; upload accepted | Tested on a real account. Visibility to others not yet confirmed. |
+| Android app 47.1.3 + TikProfileBanner (LSPosed) | Yes: button appears, upload accepted, visible to others | Tested on a real account; other accounts see the banner (confirmed 2026-11-08). |
 | iOS app | Unknown, not modifiable | No equivalent module; iOS can't run Android apps. |
 
 So the **native Android app with a hook framework** is required. Python can't replace the app;

@@ -4,8 +4,9 @@ Set a **TikTok profile banner** (the background image behind your profile info) 
 `foxi.py` starts a private Android phone in its own window, running the official TikTok app with
 the banner option unlocked. You sign in, open your profile and add your banner.
 
-> **Status: experimental.** The **Add background** button appears and TikTok accepts the upload.
-> Whether *other people* see the banner has **not been confirmed yet** (see [What was tested](#what-was-tested)).
+> **Status: working, tested on one account.** The **Add background** button appears, TikTok accepts
+> the upload, and **other people see the banner** (confirmed 2026-11-08). Your own app doesn't show
+> it to you; check from another account. See [What was tested](#what-was-tested).
 
 ```
                         (fox)
@@ -160,9 +161,9 @@ On a Mac with Apple Silicon (macOS 26), 2026-11-07:
 - ✅ **Close** leaves nothing running. **Erase** (tested on a copy): a wrong confirmation cancels;
   `ERASE` deletes only the data folder.
 - ✅ **Banner:** the button appeared for a real account, and TikTok accepted and displayed the upload.
-- ⚠️ **Visibility to others not checked.** After TikTok restarts, the owner's own app no longer
-  shows the banner. The module author says TikTok never sends your banner back to you, so it has
-  to be **checked from another account**. That hasn't been done yet.
+- ✅ **Others see the banner** (confirmed 2026-11-08 by the account owner). The owner's own app stops
+  showing it after TikTok restarts, because TikTok never sends your banner back to you, so check
+  from **another account**.
 - ❌ **Not tested yet:**
   - installing TikTok from `apk/` during setup (the APK was added to the folder after setup had finished)
   - Windows, Linux and Intel Macs
