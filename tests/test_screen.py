@@ -30,10 +30,10 @@ class Layout(unittest.TestCase):
                     plain = [screen._ANSI.sub("", l) for l in out]
                     u = next(i for i, l in enumerate(plain) if "tiktok.com/@rcfo" in l)
                     self.assertGreaterEqual(u, 10, "fox should be above the URL")
-                    hw = screen.HEADING_WIDTH                                     # centred under heading
-                    self.assertLessEqual(abs(plain[u].index("tiktok") - 1 - (hw - 16) // 2), 1)
+                    centre = 119 / 2                                              # centred in the window
+                    self.assertLessEqual(abs(plain[u].index("tiktok") + 8 - centre), 1.5)
                     self.assertEqual(plain[u + 1].strip(), "Banner unlock by: github.com/vanquzie")
-                    self.assertLessEqual(abs(plain[u + 1].index("Banner") - 1 - (hw - 37) // 2), 1)
+                    self.assertLessEqual(abs(plain[u + 1].index("Banner") + 18.5 - centre), 1.5)
                     self.assertTrue(all("Tik: RCFO" not in l and "banner helper" not in l for l in plain))
                     if name == "menu":
                         menu = [l.strip() for l in plain[u + 2:]]
@@ -69,9 +69,18 @@ class Layout(unittest.TestCase):
                     out = screen.render(body, 120, 30)
                     plain = [screen._ANSI.sub("", l) for l in out]
                     u = next(i for i, l in enumerate(plain) if "tiktok.com/@rcfo" in l)
-                    self.assertEqual([l[1:] for l in plain[u - 3:u]], screen.HEADING)  # 3 rows above URL
-                    self.assertTrue(plain[u - 3].startswith(" ▀█▀"))                     # left-aligned
+                    self.assertEqual([l.strip() for l in plain[u - 3:u]], [h.strip() for h in screen.HEADING])
+                    start = plain[u - 3].index("▀█▀")                                   # heading centred
+                    self.assertLessEqual(abs(start + screen.HEADING_WIDTH / 2 - 119 / 2), 1.5)
                     self.assertNotIn("\x1b[", out[u].replace("\x1b]8;;", ""))          # URL uncoloured
+                    fox_rows = [l for l in plain[:u - 3] if l.strip()]                  # fox centred over heading
+                    mid = 119 / 2
+                    left = min(len(l) - len(l.lstrip()) for l in plain[:u - 3])
+                    fox_w = max(len(l.rstrip()) for l in plain[:u - 3]) - left
+                    self.assertTrue(fox_rows)
+                    self.assertLessEqual(abs(left + fox_w / 2 - mid), 2)
+                    body = plain[u + 3]                                                  # body stays left
+                    self.assertTrue(body.startswith(" ") and not body.startswith("  "))
         self.assertLessEqual(screen.HEADING_WIDTH, 60)
         g = screen._GLYPHS                                    # spells exactly "TIKTOK : RCFO"
         self.assertEqual(screen.HEADING, [" ".join(g[c][r] for c in "TIKTOK : RCFO") for r in range(3)])
