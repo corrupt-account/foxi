@@ -32,11 +32,11 @@ class Layout(unittest.TestCase):
                     self.assertGreaterEqual(u, 10, "fox should be above the URL")
                     centre = 119 / 2                                              # centred in the window
                     self.assertLessEqual(abs(plain[u].index("tiktok") + 8 - centre), 1.5)
-                    self.assertEqual(plain[u + 1].strip(), "https://github.com/corrupt-account/foxi")
+                    self.assertEqual(plain[u + 1].strip(), "github.com/corrupt-account")
                     self.assertEqual(plain[u + 2].strip(), "Banner unlock by: github.com/vanquzie")
                     self.assertLessEqual(abs(plain[u + 2].index("Banner") + 18.5 - centre), 1.5)
-                    self.assertEqual(plain[u - 5:u - 3], ["", ""])                 # 2-line gap fox -> heading
-                    self.assertTrue(plain[u - 6].strip())
+                    self.assertEqual(plain[u - 4], "")                             # 1-line gap fox -> heading
+                    self.assertTrue(plain[u - 5].strip())
                     if name == "menu":
                         menu = [l.strip() for l in plain[u + 2:]]
                         for item in ("1  Add images", "2  Close program", "3  Close program and erase all program data"):
@@ -47,8 +47,8 @@ class Layout(unittest.TestCase):
         with mock.patch.object(ui, "COLOUR", False):
             out = screen.render(bodies()["menu"], 120, 30)
             u = next(i for i, l in enumerate(out) if "tiktok.com/@rcfo" in l)
-            fox_rows = [l for l in out[:u - 5] if l.strip()]
-            self.assertGreaterEqual(len(fox_rows), 13)
+            fox_rows = [l for l in out[:u - 4] if l.strip()]
+            self.assertEqual(len(fox_rows), 13)
 
     def test_header_same_on_every_screen(self):
         with mock.patch.object(ui, "COLOUR", False):

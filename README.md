@@ -11,12 +11,11 @@ the banner option unlocked. You sign in, open your profile and add your banner.
 ```
                         (fox)
 
-
  ▀█▀ ▀█▀ █ ▄▀ ▀█▀ █▀▀█ █ ▄▀   ▄   █▀▀█ █▀▀ █▀▀ █▀▀█
   █   █  ██▄   █  █  █ ██▄        █▀█▀ █   █▀▀ █  █
   ▀  ▀▀▀ ▀  ▀  ▀  ▀▀▀▀ ▀  ▀   ▀   ▀  ▀ ▀▀▀ ▀   ▀▀▀▀
                   tiktok.com/@rcfo
-      https://github.com/corrupt-account/foxi
+             github.com/corrupt-account
        Banner unlock by: github.com/vanquzie
 
  Sign in, then: Profile → Edit profile → Add background → Upload photo → Banners

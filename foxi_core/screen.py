@@ -1,7 +1,7 @@
 """One left-aligned column, redrawn for every screen:
 
-    fox  ->  2 blank lines  ->  TIKTOK : RCFO (block letters, fox colours)  ->  tiktok.com/@rcfo
-         ->  https://github.com/corrupt-account/foxi  ->  "Banner unlock by: github.com/vanquzie"
+    fox  ->  1 blank line  ->  TIKTOK : RCFO (block letters, fox colours)  ->  tiktok.com/@rcfo
+         ->  github.com/corrupt-account  ->  "Banner unlock by: github.com/vanquzie"
          (this header block is centred in the window)
          ->  current body (left-aligned)
 
@@ -22,8 +22,9 @@ from . import ui
 PROFILE_URL = "https://www.tiktok.com/@rcfo"
 CREDIT_URL = "https://github.com/vanquzie/TikProfileBanner"   # TikProfileBanner by vanquzie, GPL-3.0
 PROJECT_URL = "https://github.com/corrupt-account/foxi"       # this project
-FOX_GAP = 2             # blank lines between the fox and the heading
-BODY_ROWS = 8           # lines reserved under the header (tallest body incl. prompt: setup step 6)
+PROJECT_TEXT = "github.com/corrupt-account"
+FOX_GAP = 1             # blank lines between the fox and the heading
+BODY_ROWS = 9           # lines reserved under the header (tallest body + prompt is 8; 1 row spare)
 FOX_MAX_ROWS = 15
 FOX_MIN_ROWS = 6
 INDENT = " "
@@ -83,7 +84,7 @@ def url_line() -> str:
 
 
 def project_line() -> str:
-    return link(PROJECT_URL, PROJECT_URL)                                           # plain, like the TikTok link
+    return link(PROJECT_TEXT, PROJECT_URL)                                           # plain, like the TikTok link
 
 
 def credit_line() -> str:
