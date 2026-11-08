@@ -26,6 +26,14 @@ the banner option unlocked. You sign in, open your profile and add your banner.
  › Choose 1, 2 or 3:
 ```
 
+## foxi and TikProfileBanner
+
+| | [TikProfileBanner](https://github.com/vanquzie/TikProfileBanner) alone | foxi |
+|---|---|---|
+| **What it is** | A module that un-hides the banner button | A full setup that runs that module for you |
+| **Device needed** | A rooted Android phone with LSPosed | A Mac, Windows or Linux computer; no phone to root |
+| **Setup** | You root the phone and install LSPosed, TikTok 47.1.3 and the module | Downloads and verifies everything and roots a virtual phone; you make a few one-time taps |
+
 ## You need
 
 - **Python 3.9 or newer.** foxi doesn't install it.
@@ -163,9 +171,8 @@ On a Mac with Apple Silicon (macOS 26), 2026-11-07:
 - ✅ **Others see the banner** (confirmed 2026-11-08 by the account owner). The owner's own app stops
   showing it after TikTok restarts, because TikTok never sends your banner back to you, so check
   from **another account**.
-- ❌ **Not tested yet:**
-  - installing TikTok from `apk/` during setup (the APK was added to the folder after setup had finished)
-  - Windows, Linux and Intel Macs
+- ✅ **Installing TikTok from `apk/` during setup** (confirmed 2026-11-08).
+- ❌ **Not tested yet:** Windows, Linux and Intel Macs.
 
 Offline tests (paths, images, erase safety, screen layout at many window sizes):
 
